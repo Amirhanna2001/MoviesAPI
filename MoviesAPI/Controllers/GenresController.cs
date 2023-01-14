@@ -21,7 +21,7 @@ namespace MoviesAPI.Controllers
             return Ok(genres);
         }
         [HttpPost]
-        public async Task<IActionResult> Create(CreateGenreDto dto)
+        public async Task<IActionResult> Create(GenreDto dto)
         {
             Genre genre = new() { Name = dto.Name};
             await _context.AddAsync(genre);
@@ -29,5 +29,20 @@ namespace MoviesAPI.Controllers
 
             return Ok(genre);   
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id,[FromBody]GenreDto dto)
+        {
+            Genre genre = await _context.Genres.FirstOrDefaultAsync(g => g.Id == id);
+
+            if (genre == null)
+                return NotFound($"No Genre found by ID = {id}");
+
+            genre.Name = dto.Name;
+
+            _context.SaveChanges();
+
+            return Ok(genre);
+        }
+
     }
 }
