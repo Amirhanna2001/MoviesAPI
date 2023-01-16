@@ -27,7 +27,7 @@ namespace MoviesAPI.Controllers
                 .Select(m => new MovieDetailsDto
                 {
                     Id = m.Id,
-                    GenreId = m.Genre.Id,
+                    GenreId = m.GenreId,
                     GenreName = m.Genre.Name,
                     Poster = m.Poster,
                     Rate = m.Rate,
@@ -38,12 +38,31 @@ namespace MoviesAPI.Controllers
                 .ToListAsync());
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            Movie movie =await _context.Movies.Include(m => m.Genre).SingleOrDefaultAsync(m => m.Id == id);
+            if (movie == null)
+                return NotFound($"Not found movie with id {id}");
+
+            MovieDetailsDto dto = new()
+            {
+                Id = movie.Id,
+                GenreId = movie.GenreId,
+                GenreName = movie.Genre.Name,
+                Poster = movie.Poster,
+                Rate = movie.Rate,
+                StoreLine = movie.StoreLine,
+                Title = movie.Title,
+                Year = movie.Year,
+            };
+
+            return Ok(dto);   
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromForm]CreateMovieDto dto)
         {
-            //handle image size 
-            //handle extenstions 
             if (dto.Poster.Length > maxAllowedPosterSize)
                 return BadRequest("Max allowed size is 1MB !");
 
