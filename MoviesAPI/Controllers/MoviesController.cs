@@ -81,8 +81,11 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm]CreateMovieDto dto)
+        public async Task<IActionResult> Create([FromForm]MovieDto dto)
         {
+            if (dto.Poster == null)
+                return BadRequest($"Movie Poster Is Required");
+
             if (dto.Poster.Length > maxAllowedPosterSize)
                 return BadRequest("Max allowed size is 1MB !");
 
@@ -112,6 +115,54 @@ namespace MoviesAPI.Controllers
 
             await _context.Movies.AddAsync(movie);
 
+            _context.SaveChanges();
+
+            return Ok(movie);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromForm] MovieDto dto)
+        {
+            Movie movie = await _context.Movies.FindAsync(id);
+
+            if(movie == null)
+                return NotFound($"Not Found movie with id no {id}");
+
+            if (!await _context.Genres.AnyAsync(g => g.Id == dto.GenreId))
+                return BadRequest("The Genre Id You enterd is not found");
+
+            if(dto.Poster != null)
+            {
+                if (dto.Poster.Length > maxAllowedPosterSize)
+                    return BadRequest("Poster Size Must Be Less than or equals 1MB ");
+
+                if (!allowedPosterExtentions.Contains(Path.GetExtension(dto.Poster.FileName).ToLower()))
+                    return BadRequest("Only Allowed Extentions .PNG and .JPG ");
+
+                MemoryStream dataStream = new ();
+                await dto.Poster.CopyToAsync(dataStream);
+
+                movie.Poster = dataStream.ToArray();
+            }
+            movie.StoreLine = dto.StoreLine;
+            movie.Rate = dto.Rate;
+            movie.Title = dto.Title;
+            movie.Year = dto.Year;
+
+            _context.SaveChanges();
+            return Ok(movie);
+
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            Movie movie = await _context.Movies.FindAsync(id);
+
+            if (movie == null)
+                return NotFound($"Not Found movie with id no {id}");
+
+            _context.Movies.Remove(movie);
             _context.SaveChanges();
 
             return Ok(movie);
