@@ -59,6 +59,26 @@ namespace MoviesAPI.Controllers
 
             return Ok(dto);   
         }
+        [HttpGet("GetByGenreId")]
+        public async Task<IActionResult> GetByGenreId(byte genreId)
+        {
+            return Ok(await _context.Movies
+                .Where(m=>m.GenreId == genreId)
+                .OrderByDescending(m => m.Rate)
+                .Include(m => m.Genre)
+                .Select(m => new MovieDetailsDto
+                {
+                    Id = m.Id,
+                    GenreId = m.GenreId,
+                    GenreName = m.Genre.Name,
+                    Poster = m.Poster,
+                    Rate = m.Rate,
+                    StoreLine = m.StoreLine,
+                    Title = m.Title,
+                    Year = m.Year,
+                })
+                .ToListAsync());
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromForm]CreateMovieDto dto)
@@ -69,8 +89,6 @@ namespace MoviesAPI.Controllers
             if (!allowedPosterExtentions.Contains(Path.GetExtension(dto.Poster.FileName).ToLower()))
                 return BadRequest("Only allowed extentions is PNG and JPG !");
 
-            //if (!allowedPosterExtentions.Contains(Path.GetExtension(dto.Poster.FileName).ToLower()))
-            //    return BadRequest("Only .png and .jpg images are allowed!");
 
             if (!await _context.Genres.AnyAsync(g=>g.Id == dto.GenreId))
                 return BadRequest("The Genre Id You enterd is not found");
