@@ -81,10 +81,8 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm]MovieDto dto)
+        public async Task<IActionResult> Create([FromForm]CreateMovieDto dto)
         {
-            if (dto.Poster == null)
-                return BadRequest($"Movie Poster Is Required");
 
             if (dto.Poster.Length > maxAllowedPosterSize)
                 return BadRequest("Max allowed size is 1MB !");
@@ -121,7 +119,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromForm] MovieDto dto)
+        public async Task<IActionResult> Update(int id, [FromForm] UpdateMovieDto dto)
         {
             Movie movie = await _context.Movies.FindAsync(id);
 
