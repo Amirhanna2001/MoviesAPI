@@ -10,7 +10,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
+
 builder.Services.AddTransient<IGenreServices,GenreServices>();
+builder.Services.AddTransient<IMoviesServices,MoviesServices>();
 
 builder.Services.AddCors();//for other api can access 
 

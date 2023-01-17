@@ -7,6 +7,7 @@
         Task<Genre> GetById(byte id);
         Genre Update(Genre genre);
         Genre Delete(Genre genre);
+        Task<bool> IsGenreExsists(byte id);
 
     }
 }
