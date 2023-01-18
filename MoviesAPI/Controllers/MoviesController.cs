@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MoviesAPI.Helper;
 using MoviesAPI.Services;
-using System;
 
 namespace MoviesAPI.Controllers
 {
@@ -13,18 +14,21 @@ namespace MoviesAPI.Controllers
     {
         private readonly IMoviesServices _moviesServices;
         private readonly IGenreServices _genresServices;
+        private readonly IMapper _mapper;
         private long maxAllowedPosterSize = 1_048_576;
         private List<string> allowedPosterExtentions = new() { ".jpg", ".png" };
 
-        public MoviesController(IMoviesServices moviesServices, IGenreServices genresServices)
+        public MoviesController(IMoviesServices moviesServices, IGenreServices genresServices, IMapper mapper)
         {
             _moviesServices = moviesServices;
             _genresServices = genresServices;
+            _mapper = mapper;
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAllMovies()
         {
-            return Ok(await _moviesServices.GetAllMovies());
+            return Ok(_mapper.Map<IEnumerable<MovieDetailsDto>>(await _moviesServices.GetAllMovies()));
         }
 
         [HttpGet("{id}")]
@@ -35,40 +39,14 @@ namespace MoviesAPI.Controllers
             if (movie == null)
                 return NotFound($"Not found movie with id {id}");
 
-            MovieDetailsDto dto = new()
-            {
-                Id = movie.Id,
-                GenreId = movie.GenreId,
-                GenreName = movie.Genre.Name,
-                Poster = movie.Poster,
-                Rate = movie.Rate,
-                StoreLine = movie.StoreLine,
-                Title = movie.Title,
-                Year = movie.Year,
-            };
-
-            return Ok(dto);   
+            return Ok(_mapper.Map<MovieDetailsDto>(movie));   
         }
-        //[HttpGet("GetByGenreId")]
-        //public async Task<IActionResult> GetByGenreId(byte genreId)
-        //{
-        //    return Ok(await _context.Movies
-        //        .Where(m=>m.GenreId == genreId)
-        //        .OrderByDescending(m => m.Rate)
-        //        .Include(m => m.Genre)
-        //        .Select(m => new MovieDetailsDto
-        //        {
-        //            Id = m.Id,
-        //            GenreId = m.GenreId,
-        //            GenreName = m.Genre.Name,
-        //            Poster = m.Poster,
-        //            Rate = m.Rate,
-        //            StoreLine = m.StoreLine,
-        //            Title = m.Title,
-        //            Year = m.Year,
-        //        })
-        //        .ToListAsync());
-        //}
+
+        [HttpGet("GetByGenreId")]
+        public async Task<IActionResult> GetByGenreId(byte genreId)
+        {
+            return Ok(await _moviesServices.GetAllMovies(genreId));
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromForm]CreateMovieDto dto)
@@ -80,7 +58,6 @@ namespace MoviesAPI.Controllers
             if (!allowedPosterExtentions.Contains(Path.GetExtension(dto.Poster.FileName).ToLower()))
                 return BadRequest("Only allowed extentions is PNG and JPG !");
 
-
             if (!await _genresServices.IsGenreExsists(dto.GenreId))
                 return BadRequest("The Genre Id You enterd is not found");
 
@@ -89,17 +66,20 @@ namespace MoviesAPI.Controllers
             using MemoryStream dataStream = new ();
 
             await dto.Poster.CopyToAsync(dataStream);
+            
+            Movie movie = _mapper.Map<Movie>(dto);
+            movie.Poster = dataStream.ToArray();
 
-            Movie movie = new()
-            {
-                Title = dto.Title,
-                Year = dto.Year,
-                Rate = dto.Rate,
-                StoreLine = dto.StoreLine,
-                GenreId = dto.GenreId,
-                Poster = dataStream.ToArray()
-                
-            };
+            //Movie movie = new()
+            //{
+            //    Title = dto.Title,
+            //    Year = dto.Year,
+            //    Rate = dto.Rate,
+            //    StoreLine = dto.StoreLine,
+            //    GenreId = dto.GenreId,
+            //    Poster = dataStream.ToArray()
+
+            //};
 
             await _moviesServices.Create(movie);
 

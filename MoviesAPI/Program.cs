@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using MoviesAPI.Models;
 using MoviesAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +9,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
+
+builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddTransient<IGenreServices,GenreServices>();
 builder.Services.AddTransient<IMoviesServices,MoviesServices>();
@@ -76,7 +77,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors(c=>c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());//for other api can access 
 app.UseAuthorization();
 

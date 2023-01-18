@@ -28,7 +28,8 @@ namespace MoviesAPI.Services
         }
 
         public async Task<IEnumerable<Genre>> GetAllGenres()
-            => await _context.Genres.OrderBy(g => g.Name).ToListAsync();
+            => await _context.Genres
+                .OrderBy(g => g.Name).ToListAsync();
 
 
 

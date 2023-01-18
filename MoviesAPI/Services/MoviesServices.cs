@@ -11,9 +11,10 @@ namespace MoviesAPI.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Movie>> GetAllMovies()
+        public async Task<IEnumerable<Movie>> GetAllMovies(byte genreId = 0)
         {
             return await _context.Movies
+                .Where(x => x.GenreId == genreId || genreId == 0)
                 .OrderByDescending(m => m.Rate)
                 .Include(m => m.Genre)
                 .ToListAsync();
