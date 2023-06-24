@@ -70,17 +70,6 @@ namespace MoviesAPI.Controllers
             Movie movie = _mapper.Map<Movie>(dto);
             movie.Poster = dataStream.ToArray();
 
-            //Movie movie = new()
-            //{
-            //    Title = dto.Title,
-            //    Year = dto.Year,
-            //    Rate = dto.Rate,
-            //    StoreLine = dto.StoreLine,
-            //    GenreId = dto.GenreId,
-            //    Poster = dataStream.ToArray()
-
-            //};
-
             await _moviesServices.Create(movie);
 
             return Ok(movie);
