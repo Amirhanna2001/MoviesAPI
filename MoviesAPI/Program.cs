@@ -1,12 +1,39 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MoviesAPI.Configurations;
 using MoviesAPI.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.Configure<Jwt>(builder.Configuration.GetSection("Jwt"));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(jwt =>
+    {
+        byte[] key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("Jwt:key").Value);
+        jwt.SaveToken = true;
+        jwt.TokenValidationParameters = new()
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            RequireExpirationTime = false,
+            ValidateLifetime = true,
+        };
+    });
 
 builder.Services.AddControllers();
 
@@ -77,7 +104,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors(c=>c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());//for other api can access 
+//app.UseCors(c=>c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());//for other api can access 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
