@@ -59,6 +59,20 @@ namespace MoviesAPI.Controllers
             }
             return Ok(new AuthResult() { Succeeded = true,Token = GenerateToken(user)});
         }
+        [Route("login")]
+        [HttpPost]
+        public async Task<IActionResult>Login(UserLoginDto dto)
+        {
+            if (!ModelState.IsValid) 
+                return BadRequest();
+
+            IdentityUser user =await _userManager.FindByEmailAsync(dto.Email);
+
+            if(user == null || !_userManager.CheckPasswordAsync(user,dto.Password).Result)
+                return BadRequest(new AuthResult() { Errors = new() { "Invalid Email Or Password"},Succeeded = false });
+
+            return Ok(new AuthResult() { Token = GenerateToken(user),Succeeded = true});
+        }
         private string GenerateToken(IdentityUser user)
         {
 
