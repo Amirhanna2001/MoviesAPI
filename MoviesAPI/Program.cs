@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 builder.Services.Configure<Jwt>(builder.Configuration.GetSection("Jwt"));
 
@@ -34,6 +36,12 @@ builder.Services.AddAuthentication(options =>
             ValidateLifetime = true,
         };
     });
+
+//builder.Services.AddScoped<Jwt>();
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedEmail = false)
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
 
 builder.Services.AddControllers();
 
