@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +9,7 @@ using MoviesAPI.Services;
 
 namespace MoviesAPI.Controllers
 {
-    //get post put delete
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
     [ApiController]
     public class MoviesController : ControllerBase
@@ -24,7 +26,7 @@ namespace MoviesAPI.Controllers
             _genresServices = genresServices;
             _mapper = mapper;
         }
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAllMovies()
         {
